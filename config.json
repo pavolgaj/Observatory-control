@@ -1,0 +1,65 @@
+{
+	"title": "Telescope Control",
+	"size": "300x350",
+	"groups": 
+	[
+		{
+			"name": "Roof control",
+			"ssh": false,
+			"ip": "ip",
+			"user": "user",
+			"buttons": 
+			[
+				{
+					"name": "Move Left",
+					"command": "crelay 2 OFF && sleep 1 && crelay 2 ON && sleep 1 && crelay 2 OFF",
+					"confirm": "Roof can be closed only if the telescope is in parking position.\nDo you really want to move the roof?"
+				},
+				{
+					"name": "Move Right",
+					"command": "crelay 1 OFF && sleep 1 && crelay 1 ON && sleep 1 && crelay 1 OFF",
+					"confirm": "Roof can be closed only if the telescope is in parking position.\nDo you really want to move the roof?"
+				},
+				{
+					"name": "Move Both",
+					"command": "crelay 1 OFF && crelay 2 OFF && sleep 1 && crelay 1 ON && crelay 2 ON && sleep 1 && crelay 1 OFF && crelay 2 OFF",
+					"confirm": "Roof can be closed only if the telescope is in parking position.\nDo you really want to move the roof?"
+				}
+			]
+		},
+		{
+			"name": "Power control",
+			"ssh": false,
+			"ip": "ip",
+			"user": "user",
+			"buttons": 
+			[
+				{
+					"name": "Camera ON",
+					"command": "sispmctl -o 2"
+				},
+				{
+					"name": "Camera OFF",
+					"command": "sispmctl -f 2",
+					"confirm": "Do you really want to turn power OFF?"
+				},
+                { 
+                    "name": "Camera STATUS", 
+                    "command": "sispmctl -g 2 | grep outlet",
+                    "result": 1
+                }
+			]
+		},
+        {
+            "name": "INDI",
+            "ssh": false,
+            "ip": "ip",
+            "user": "user",
+            "buttons": [
+                {"name": "Start INDI", "command": "indiserver indi_mi_ccd_usb indi_sestosenso2_focus indi_lx200_10micron"},
+                {"name": "Stop INDI", "command": "pkill indiserver", "confirm": "Do you really want to stop INDI server?"},
+                {"name": "Status INDI", "command": "ps -ef | grep indi | grep server | wc -l", "result": 1}
+            ]
+        }
+	]
+}
