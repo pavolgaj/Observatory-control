@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f3f4f6;
+            padding: 20px;
+        }
+        .group {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .group-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+            text-align: center;
+        }
+        button {
+            display: inline;
+            margin: 5px 0;
+            padding: 10px 20px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 200px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        
+        h1 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    {% for group in groups %}
+    <div class="group">
+        <div class="group-title">{{ group.name }}</div>
+        {% for btn in group.buttons %}
+        {% if not (btn.no_web | default(False)) %}
+            <button onclick="handleClick('{% if group.ssh | default(False) %}ssh {{ group.user }}@{{ group.ip }} {% endif %}{{ btn.command | escape }}', '{{ btn.confirm | default('') | replace("\n", "\\n") | escape }}', '{{ btn.name  | escape }}', {{ btn.result | default(0) }})">
+                {{ btn.name }}
+            </button>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endfor %}
+
+    
+    
+    <!--<div class="status" id="status"></div>-->
+
+    <script>
+        function handleClick(command, confirmText, name, result) {
+            if (confirmText) {
+                if (!confirm(confirmText.replace(/\\n/g, "\n"))) return;
+            }
+
+            //const statusDiv = document.getElementById("status");
+            //statusDiv.textContent = `Running: ${command} ...`;
+
+            fetch("/run", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ command, result })
+            })
+            .then(function(response) {
+                return response.json().then(function(res) {
+                    return {
+                        ok: response.ok,
+                        result: res
+                    };
+                });
+            })
+            .then(function(data) {
+                if (result) {
+                     alert(name+": "+data.result.message);
+                }
+                else {
+                    alert('Action "'+name+'" was executed!')
+                }
+
+                if (!data.ok) {
+                    console.error("Server returned an error:", data.result);
+                }
+            })
+            .catch(function(error) {
+                alert('Failed to execute command: "'+name+'".');
+                console.error("Request failed:", error);
+            });
+            
+            //show after 2s
+            //setTimeout(() => {
+            //    alert('Action "'+name+'" was executed!');
+            //    }, 2000);
+            
+            //const result = res.json();
+            
+            //statusDiv.textContent = result.message;
+        }
+    </script>
+</body>
+</html>
